@@ -1,0 +1,20 @@
+<document xmlns="http://cnx.rice.edu/cnxml">
+  <title>Background</title>
+<metadata xmlns:md="http://cnx.rice.edu/mdml">
+  <md:content-id>m33247</md:content-id>
+  <md:title>Background</md:title>
+  <md:abstract>Brief summary of the problem and previous work.</md:abstract>
+  <md:uuid>9ee4a281-d929-4154-a99d-b9e07aad279f</md:uuid>
+</metadata>
+<content>
+    
+    <para id="id2253173"><title>Background</title>Image stabilization can be done in many different ways. <link url="http://en.wikipedia.org/wiki/Kanade-Lucas-Tomasi_Feature_Tracker">Kanade-Lucas-Tomasi (KLT) feature tracking</link> is one of the computationally inexpensive ways, in comparison to 2-D correlation and even SIFT. We chose Stan Birchfield's implementation because it is written in C and we found it easy to interface to in comparison with other open-source implementations.</para>
+    <para id="id2253818">When we have a set of common features between two images, we can 'undo' the transformation that makes the second image's features reside in a different location than the first, creating a new image whose features have similar locations to those in the first image.</para>
+    <para id="id2253826">In order to accomplish this, we use a series of least-squares affine transformations on the set of features to determine the `best' values for the un-affine we perform to correct the later image. After this, we then filter the resulting affine transformation, keeping the low-frequency movement (such as panning) and removing the high-frequency jitter.</para>
+    <para id="id2253835">Pictorally, the process is as such:</para>
+    <media id="process" alt="Visual representation of the process.">
+    <image mime-type="image/png" src="../../media/graphic.png"/>
+    </media>
+
+  </content>
+</document>

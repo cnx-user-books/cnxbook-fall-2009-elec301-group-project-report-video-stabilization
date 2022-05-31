@@ -1,0 +1,27 @@
+<document xmlns="http://cnx.rice.edu/cnxml">
+
+<title>Future Work</title>
+<metadata xmlns:md="http://cnx.rice.edu/mdml">
+  <md:content-id>m33254</md:content-id>
+  <md:title>Future Work</md:title>
+  <md:abstract/>
+  <md:uuid>5ef96ffd-025f-4242-a5d4-844d05607bdc</md:uuid>
+</metadata>
+<content>
+  <para id="delete_me"><title>Future Work</title>Now that we basic algorithms down, the focus should be on improving
+the speed so we can get real-time stabilized video feed while
+operating our UAV. This means converting the code to C. It may also
+be necessary to use KLT trackers that use the video card GPU, as well as
+writing an equivalent of the MATLAB interp2 that does the same.</para><para id="eip-5">While taking the first steps towards this conversion, we realized that
+our video stabilizer would make a pretty cool GStreamer
+plugin.  <link url="http://gstreamer.freedesktop.org/">GStreamer</link> is a media framework for the open-sourse Gnome
+desktop environment.  With it, we will be able route video sources of
+many kinds through our stabilizer and then on to our choice of video
+sinks.  We have already figured out how to implement a "null" plugin
+that just copies frames from the source to the sink already, so once
+our algorithms are in C using GStreamer should be easy.</para><para id="eip-855">If these improvements can be made, the next step will be to test the
+code out with live footage from our own UAV. </para>
+</content>
+
+
+</document>

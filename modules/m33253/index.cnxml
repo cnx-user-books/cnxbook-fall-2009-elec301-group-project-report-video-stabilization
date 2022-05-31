@@ -1,0 +1,343 @@
+<document xmlns="http://cnx.rice.edu/cnxml">
+
+<title>Code</title>
+<metadata xmlns:md="http://cnx.rice.edu/mdml">
+  <md:content-id>m33253</md:content-id>
+  <md:title>Code</md:title>
+  <md:abstract>The set of Matlab and C code used to stabilize videos for our ELEC301 Group Project.</md:abstract>
+  <md:uuid>9c7d43b0-b54b-4928-a635-dcf10afc7656</md:uuid>
+</metadata>
+<content>
+  <para id="eip-811">The main pieces of code used to accomplish the stabilization are shown below.  There are several addition files needed for the complete program, which are available for download instead of being shown inline:
+<list id="filelist">
+<item>
+<link resource="tracker.c">tracker.c</link>
+</item><item>
+<link resource="im2_jpeg.c">im2_jpeg.c</link>
+</item><item>
+<link resource="imload_bw.m">imload_bw.m</link>
+</item><item>
+<link resource="write_jpeg_bw.m">write_jpeg_bw.m</link>
+</item><item>
+<link resource="write_jpeg_col.m">write_jpeg_col.m</link>
+</item>
+</list>
+</para><code id="eip-741" display="block"><title>l2aff.m</title>% Least Squares Affine Transformation
+% ELEC 301 Group Project
+% 11/29/2009
+% Jeffrey Bridge, Robert Brockman II, Stamatios Mastrogiannis
+%
+% Calculate the least squares affine transformation for two corresponding
+% sets of pixel locations.
+% px inputs are of the form:
+%[ x_1 y_1
+%  x_2 y_2
+%  :   :
+%  x_N y_N ]
+%
+% [x'] = [a, b] * [x] + [e]
+% [y']   [c, d]   [y]   [f]
+
+function Aff = l2aff(pxold, pxnew)
+    b = reshape(pxnew.', [], 1);
+    A = makenice(pxold);
+    x = pinv(A) * b; % Was psinv, our version of computing the pseudoinv
+    Aff = [x(1), x(2), x(5); ...
+          x(3), x(4), x(6)];
+return
+
+function A = makenice(pxold)
+    [r, c] = size(pxold);
+    A = zeros(2*r, 6);
+    for k=1:r
+        x = pxold(k,1);
+        y = pxold(k,2);
+        %correspond to a, b, c, d, e, f
+        A(2*k-1, :) = [x, y, 0, 0, 1, 0];
+        A(2*k  , :) = [0, 0, x, y, 0, 1];
+    end
+return</code><code id="eip-650" display="block"><title>aff_mul.m</title>% ELEC 301 Group Project
+% 2009 December 12
+% Jeffrey Bridge, Robert Brockman II, Stamatios Mastrogiannis
+%
+% Combine two affine transforms into one
+%
+% Aff = [a b e
+%        c d f]
+%
+% [x'] = [a, b] * [x] + [e]
+% [y']   [c, d]   [y]   [f]
+
+function Aff = aff_mul(Aff2, Aff1)
+a1 = Aff1(1,1);
+b1 = Aff1(1,2);
+c1 = Aff1(2,1);
+d1 = Aff1(2,2);
+e1 = Aff1(1,3);
+f1 = Aff1(2,3);
+
+a2 = Aff2(1,1);
+b2 = Aff2(1,2);
+c2 = Aff2(2,1);
+d2 = Aff2(2,2);
+e2 = Aff2(1,3);
+f2 = Aff2(2,3);
+
+Aff = [...
+    a2*a1 + b2*c1, ...
+    a2*b1 + b2*d1, ...
+    a2*e1 + e2; ...
+    c2*d1 + c2*a1, ...
+    c2*b1 + d1*d2, ...
+    d2*f1 + f2];
+return</code><code id="eip-711" display="block"><title>stabilize.m</title>% Perform video stabilization on a set of jpeg images
+% ELEC 301 Group Project
+% 11/29/2009
+% Jeffrey Bridge, Robert Brockman II, Stamatios Mastrogiannis
+%
+% Uses KLT features generated via track_destabilize.sh
+%  or track_movie.sh
+% Reads destabilized stream of jpegs from stabilize_input
+% Outputs stabilized stream of jpegs to stabilize_output
+%
+% Use view_stabilize.sh to play back results 
+%
+function stabilize()
+
+% Read feature table.  x and y contain coordinates of each feature
+% for each frame.  val is used to determine whether a feature has been
+% replaced.
+[x,y,val] = klt_read_featuretable('stabilize_input/features.txt');
+% x, y are sets of column vectors, which we like.
+
+% Extract number of features and frames from feature table.
+[nFeatures, nFrames] = size(x);
+
+invalid_inds = [];
+
+% Each frame will have an affine transformation which allows it
+% to be transformed back into the coordinates of the original frame.
+% (These transforms will then be filtered to keep low-speed drift.)
+Affs = zeros(nFrames,6);
+
+% Affine transformation starts out as the identity transformation.
+myAff = [1 0 0; 0 1 0];
+
+% Iterate over all input frames
+for n = 2:nFrames
+    fprintf('processing features for frame %d...', n);
+    
+    % Position of features in previous frame.
+    pxold = [ x(:,n-1) y(:,n-1) ];
+    % Position of features in new frame.
+    pxnew = [ x(:,n) y(:,n)];
+    
+    % Features which have replaced those that have left the scene
+    % have non-zero values in the feature table.  These must be excluded
+    % from computing our affine transformation
+    ind = find(val(:,n) ~= 0);
+    invalid_inds = ind;
+    
+    % These are the indices of valid rows in our feature table
+    valid_inds = setdiff([1:nFeatures].', invalid_inds);
+    fprintf(' only %d features left\n', length(valid_inds));
+
+    % Extract valid features.
+    valid_pxold = pxold(valid_inds,:);
+    valid_pxnew = pxnew(valid_inds,:);
+    
+    % Compute affine transformation which minimizes least squares 
+    % difference in distances between features in the previous frame
+    % vs. the new frame transformed back to the original coordinates.
+    aff = l2aff(valid_pxold, valid_pxnew);
+
+    % Combine this "frame-by-frame" transformation with those from
+    % all previous frames to get an affine transformation that will 
+    % transform the current frame into the coordinate system of the
+    % FIRST frame.
+    
+    myAff = aff_mul(aff, myAff);
+    
+    % Make the resulting transform into a vector for ease of filtering 
+    % and add it to the array of transforms for each frame.
+    Affs(n,:) = reshape(myAff,1,[]);
+end
+
+% High-pass filter the series of affine transformations to allow low 
+% frequency movement (panning, etc.) to show up in the final output.
+%
+% We do this by first low-pass filtering the series and then subtracting 
+% the result from the original.
+%%{
+switch 2 % Choose a filter
+    case 1 % Butterworth filter
+        [b, a] = butter(4,.05);
+    case 2 % Gaussian filter
+        b = exp(-linspace(-3,3,41).^2/2);
+        b = b / sum(b);
+        a = [1];
+    otherwise
+        error('Bad filter number');
+end
+filter_a = a;
+filter_b = b;
+
+% Pad beginning of transformation series with identity transforms
+% to eliminate startup distortion.
+eyeAff = [1 0 0 1 0 0];
+prepCount = 1;
+filtinAffs = [eyeAff(ones(prepCount,1),:); Affs(2:end,:)];
+
+% LFP the affine transforms TWICE, the second time in time-reversed
+% sequence.  This eliminates phase distortion caused by the filter.
+LpAffs = filtfilt(filter_b, filter_a, filtinAffs);
+LpAffs = LpAffs(prepCount:end,:); % Remove padding
+
+% HPF by subtracting LPF'd series from original.
+Affs = Affs - LpAffs;
+
+% Add back 1's in corners of rotation matrix component of transform
+% removed by LPF. (Add back in identity transform)
+Affs(:,1) = Affs(:,1) + 1;
+Affs(:,4) = Affs(:,4) + 1;
+%}
+
+% Apply affine transforms to each frame to provide video stabilization.
+%%{
+for n = 2:nFrames
+    % Get transform back into matrix form.
+    aff = reshape(Affs(n,:),2,3);
+    
+    fprintf('interpolating image %d...\n', n);
+    disp(aff);
+    
+    filename = sprintf('stabilize_input/D%08d.jpg', n);
+    
+    % Black and white output is 3x faster to compute.
+    if 1
+        A = imread(filename);
+
+        Ar = single(A(:,:,1));
+        Ag = single(A(:,:,2));
+        Ab = single(A(:,:,3));
+        
+        %B is image in coordinate system of first frame.
+        Br = im_unaff(Ar, aff);
+        Bg = im_unaff(Ag, aff);
+        Bb = im_unaff(Ab, aff);
+        B = cat(3,Br,Bg,Bb);
+        write_jpeg_col(B,sprintf('stabilize_output/S%08d.jpg',n));
+    else
+        A = imload_bw(filename);
+        B = im_unaff(A, aff);
+        write_jpeg_bw(B,sprintf('stabilize_output/S%08d.jpg',n));
+    end
+end
+%}
+return</code><code id="eip-405" display="block"><title>destabilize.m</title>% Generate Synthetic unstable test data
+% ELEC 301 Group Project
+% 11/29/2009 
+% Jeffrey Bridge, Robert Brockman II, Stamatios Mastrogiannis
+
+function destabilize()
+
+% Load a big source image, and split it into colors
+filename = 'destabilize_input.jpg';
+A = imread(filename);
+Ar = single(A(:,:,1)); 
+Ag = single(A(:,:,2));
+Ab = single(A(:,:,3));
+
+% Size of output image to generate, a subset of the source image
+output_w = 560;
+output_h = 400;
+
+% Center of source image
+[r,c] = size(Ar);
+center_row = r/2;% - 50;
+center_col = c/2;
+
+% Number of output frames to generate
+N = 300;
+
+% Standard deviation of jerky movement in pixels
+dev = 5;
+
+% Parameters controlling slow drift
+drift_radius = 10;
+drift_period = 100;
+
+for n = 1:N
+    fprintf('Generating destabilized image %d...\n', n);
+
+    % Add in slow drift of the image center
+    drift_rows = drift_radius * sin(n*2*pi/drift_period);
+    drift_cols = drift_radius * cos(n*2*pi/drift_period);
+ 
+    % Add in fast random jerky movements
+    offset_rows = floor(randn(1) * dev);
+    offset_cols = floor(randn(1) * dev);
+
+    % Calculate current image boundaries
+    left = floor(center_col + drift_cols - output_w/2 + offset_cols);
+    right = left + output_w - 1;
+    top = floor(center_row + drift_rows - output_h/2 + offset_rows);
+    bottom = top + output_h - 1;
+    
+    % Grab an offset portion of the larger image
+    Br = Ar(top:bottom, left:right);
+    Bg = Ag(top:bottom, left:right);
+    Bb = Ab(top:bottom, left:right);
+    
+    % Save it to its own file
+    B = cat(3,Br,Bg,Bb);
+    write_jpeg_col(B,sprintf('destabilize_output/D%08d.jpg',n));
+    % Play back with view_destabilize.sh
+end
+
+return</code><code id="eip-266" display="block"><title>im_unaff.m</title>% IMage UNdo an AFFine transformation
+% ELEC 301 Group Project
+% 11/29/2009
+% Jeffrey Bridge, Robert Brockman II, Stamatios Mastrogiannis
+%
+% --- INPUTS ---
+% Z = image matrix (2D grid of intensities)
+% Aff = affine transformation
+%   [a b  e
+%    c d  f]
+% [x'] = [a b]*[x] + [e]
+% [y']   [c d] [y]   [f]
+%
+% --- OUTPUTS ---
+% ZI = output image matrix
+
+function ZI = im_unaff(Z, Aff)
+% Extract size of image.
+[r,c] = size(Z);
+
+% Extract affine transformation coefficients.
+Aa = Aff(1,1);
+Ab = Aff(1,2);
+Ac = Aff(2,1);
+Ad = Aff(2,2);
+Ae = Aff(1,3);
+Af = Aff(2,3);
+
+% generate new sets of grid points
+[X0,Y0] = meshgrid(1:c, 1:r);
+% XI(c,r) and YI(c,r) contain where to look in Z for the correct 
+% intensity value to place in the new image ZI at coordinates (r,c).
+XI = Aa*X0 + Ab*Y0 + Ae;
+YI = Ac*X0 + Ad*Y0 + Af;
+
+% Since XI and YI contain non-integer values, a simple lookup will not 
+% suffice.  We must perform interpolation.
+ZI = interp2(Z, XI, YI);
+
+return
+</code><para id="delete_me">
+     <!-- Insert module text here -->
+  </para>
+</content>
+
+</document>

@@ -1,0 +1,34 @@
+<document xmlns="http://cnx.rice.edu/cnxml">
+
+<title>Introduction</title>
+<metadata xmlns:md="http://cnx.rice.edu/mdml">
+  <md:content-id>m33246</md:content-id>
+  <md:title>Introduction</md:title>
+  <md:abstract/>
+  <md:uuid>2a663e31-5c31-43f1-b042-fa4739a7685e</md:uuid>
+</metadata>
+<content>
+  <para id="delete_me"><title>Introduction</title>A common problem in dealing with Unmanned Aerial Vehicles 
+(UAVs) is image stabilization. If an operator wishes to control 
+the craft in real-time, a camera mounted on the UAV is often a good solution. This video feed, if left in its original state, 
+has varying amounts of jitter, which in turn makes operating 
+the craft more difficult and makes the footage of the flight much less pleasant to watch.
+
+We decided that we could stabilize the video without using any
+ additional hardware-based assistance (such as gyroscopes) 
+with the digital signal processing techniques we've learned over 
+the semester.
+
+Our first approach to solving this problem was to correlate each 
+video frame with the previous one, but this proved to be less than optimal ; there exists a faster, more accurate technique. Enter KLT 
+feature tracking and Serial Affine Transformation.
+
+We used a freely-available KLT feature tracker from Stan Birchfield,
+ then prototyped our affine transformation techniques in MATLAB. 
+We have started porting our work to C, and in the future we expect 
+this sort of solution to be fully implemented on GPUs for real-time
+ processing.
+  </para>
+</content>
+
+</document>

@@ -1,0 +1,14 @@
+<document xmlns="http://cnx.rice.edu/cnxml">
+
+<title>Sources</title>
+<metadata xmlns:md="http://cnx.rice.edu/mdml">
+  <md:content-id>m33249</md:content-id>
+  <md:title>Sources</md:title>
+  <md:abstract/>
+  <md:uuid>8b4e3883-05ca-4359-b7a8-8f66c90af6e8</md:uuid>
+</metadata>
+<content>
+  <para id="delete_me">We'd like to thank Aswin Sankaranarayanan at Rice DSP for pointing us in the correct direction early in our work and steering us away from trouble.  Also, a key piece of the project required using Stan Birchfeld's <link url="http://www.ces.clemson.edu/~stb/klt/">KLT feature tracker</link> and the interface code he wrote to easily move the table of features into MATLAB.</para>
+</content>
+
+</document>

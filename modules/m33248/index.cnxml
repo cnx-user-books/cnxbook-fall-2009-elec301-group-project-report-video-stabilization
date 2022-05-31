@@ -1,0 +1,87 @@
+<document xmlns="http://cnx.rice.edu/cnxml">
+  <title>Results</title>
+<metadata xmlns:md="http://cnx.rice.edu/mdml">
+  <md:content-id>m33248</md:content-id>
+  <md:title>Results</md:title>
+  <md:abstract>Limited success was achieved, but more work is needed to get image stabilization to work in real time.</md:abstract>
+  <md:uuid>fa0bb8ef-576d-4087-810d-4cb7b51f99f6</md:uuid>
+</metadata>
+<content>
+    
+    <para id="id312661"><title>Results:  Output Quality</title>We successfully used Stan Birchfeld's KLT tracker with our
+implementation of affine transforms in MATLAB to stabilize the sample
+UAV video that Aswin provided us. The video is of
+six cars at the end of a runway with the plane slowly circling them.
+There is some jitter, and evidence of a couple of dropped frames. Our
+filter completely removes these, but it also eliminates the
+perspective change caused by the movement of the plane. This introduces considerable distortion after more than about 10 seconds. High pass filtering of the affine transformation series
+does remove the jitter while preserving the overall motion. 
+
+<figure id="uavsource"><title>UAV Footage Stabilized with KLT + Affine Transforms</title><subfigure id="uavunstable">
+      <label>Source Video</label>
+      <media id="movie1" alt="uavsource">
+        <video mime-type="video/x-msvideo" src="uav_source.avi" width="350" height="300" autoplay="false"/>	  
+      </media>
+    </subfigure>   
+    <subfigure id="uavstable">
+      <label>Stabilized Video</label>
+      <media id="movie2" alt="uavstable">
+        <video mime-type="video/x-msvideo" src="uav_stable.avi" width="350" height="300" autoplay="false"/>	  
+      </media>
+    </subfigure>   
+    
+  <caption>Source footage provided by Aswin Sankaranarayanan.</caption></figure>
+
+
+</para>
+
+<para id="id312670">We wanted a more serious test of the jitter reduction, with more
+sudden motion. To do this we wrote some MATLAB code
+that takes an individual frame and generates a sequence of frames
+based on it, each with a random displacement from the original. The
+effect is that of a VERY jerky camera. The KLT-affine transform
+combination undoes this severe jitter quite nicely.
+We then superimposed a circular motion on top of the jitter to see if
+the filtered affine transformation series would preserve it while
+still removing the jitter. It does an acceptable job at this,
+although there are a few visible kinks.
+
+<figure id="owlsource"><title>Shifted Image Sequence Stabilized with KLT + Filtered Affine Transforms</title><subfigure id="owlunstable">
+      <label>Image Sequence with Jitter Added</label>
+      <media id="movie3" alt="owlsource">
+        <video mime-type="video/x-msvideo" src="owl_source.avi" width="350" height="300" autoplay="false"/>	  
+      </media>
+    </subfigure>   
+    <subfigure id="owlstable">
+      <label>Stabilized Image Sequence</label>
+      <media id="movie4" alt="owlstable">
+        <video mime-type="video/x-msvideo" src="owl_stable.avi" width="350" height="300" autoplay="false"/>	  
+      </media>
+    </subfigure>   
+    
+  </figure>
+</para>
+    <para id="id312679">Additional testing revealed that although the KLT tracker we used does
+a good job on tracking features through sudden translations, it cannot
+effectively deal with large sudden rotations. It loses track of all features in these cases. Hopefully this
+will not be an issue for our ultimate application, or we will be able
+to compensate for the rotation using additional input from gyros.</para>
+    <para id="id312686">We also experimented with stabilizing jerky footage from movies, such
+as the opening scene to Saving Private Ryan. This works quite well!
+We invite you to test out our code on DVD-quality video and see what
+you think of the results. (At some point we plan to “stabilize” The
+Blair Witch Project so those of us prone to motion sickness can watch
+it without becoming ill.) Of course the output needs to be cropped
+somewhat to eliminate the black border caused by shifting the image:
+we cannot create data from nothing!</para>
+    
+    <para id="id312701"><title>Results: Speed</title>Our code is not nearly fast enough for real-time use. Greyscale
+output at 640x480 resolution runs at about one-third of realtime,
+whereas color output at the same resolution is about one-tenth real
+time, on the 2GHz Intel Core2 Duo laptop used for testing. The biggest bottleneck right now seems to be in the
+interpolation used to assign pixel intensity values for the corrected
+frames. The KLT tracker itself is the next slowest component.
+Hopefully converting the code to C and/or offloading some of the work
+to the GPU will improve performance.</para>
+  </content>
+</document>
