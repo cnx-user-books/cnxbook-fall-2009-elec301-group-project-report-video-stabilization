@@ -1,3 +1,21 @@
-<col:collection xmlns="http://cnx.rice.edu/collxml" xmlns:col="http://cnx.rice.edu/collxml" xml:lang="en" type="Report">  <metadata xmlns:md="http://cnx.rice.edu/mdml" mdml-version="0.5">  <md:content-id>col11152</md:content-id>  <md:title>Fall 2009 ELEC301 Group Project Report: Video Stabilization</md:title>      <md:license url="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution License 3.0</md:license>  <md:language>en</md:language>              <md:uuid>e37eb65a-e792-4749-8369-4eaefde3847b</md:uuid>
-<md:slug>fall-2009-elec301-group-project-report-video-stabilization</md:slug>
-</metadata>  <col:content>          <col:module document="m33246"/>                            <col:module document="m33247"/>                            <col:module document="m33251"/>                            <col:module document="m33248"/>                            <col:module document="m33249"/>                            <col:module document="m33250"/>                            <col:module document="m33253"/>                            <col:module document="m33254"/>                    </col:content></col:collection>
+<?xml version="1.0"?>
+<col:collection xmlns="http://cnx.rice.edu/collxml" xmlns:col="http://cnx.rice.edu/collxml" xml:lang="en" type="Report" authors="Jeffrey Bridge ,Robert Brockman ,Stamatios Mastrogiannis">
+  <metadata xmlns:md="http://cnx.rice.edu/mdml" mdml-version="0.5">
+    <md:content-id>col11152</md:content-id>
+    <md:title>Fall 2009 ELEC301 Group Project Report: Video Stabilization</md:title>
+    <md:license url="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution License 3.0</md:license>
+    <md:language>en</md:language>
+    <md:uuid>e37eb65a-e792-4749-8369-4eaefde3847b</md:uuid>
+    <md:slug>fall-2009-elec301-group-project-report-video-stabilization</md:slug>
+  </metadata>
+  <col:content>
+    <col:module document="m33246"/>
+    <col:module document="m33247"/>
+    <col:module document="m33251"/>
+    <col:module document="m33248"/>
+    <col:module document="m33249"/>
+    <col:module document="m33250"/>
+    <col:module document="m33253"/>
+    <col:module document="m33254"/>
+  </col:content>
+</col:collection>
